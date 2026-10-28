@@ -1,9 +1,5 @@
 """
 Ali zandieh - Interview task
-Inspect a local dataset without uploading it.
-Put dataset file(s) in ./data, then run:
-    python inspect_dataset.py
-It prints a compact schema/sample report and writes outputs/dataset_profile.txt.
 """
 from pathlib import Path
 import json
@@ -23,7 +19,6 @@ def preview_file(path):
     try:
         if ext in {".csv", ".tsv", ".txt"}:
             sep = "\t" if ext == ".tsv" else None
-            # Read a tiny preview only, so the whole dataset is not loaded into memory.
             sample = None
             last_error = None
             for enc in ("utf-8-sig", "utf-8", "cp1256"):
@@ -40,7 +35,6 @@ def preview_file(path):
                 print(f"  - {c!r} | sample dtype={sample[c].dtype}")
             print("\nFirst 3 rows (long cells shortened):")
             print(sample.head(3).to_string(index=False, max_colwidth=100))
-            # Count rows and missing values in chunks, without loading everything.
             try:
                 encoding = "utf-8-sig"
                 sep2 = sep
