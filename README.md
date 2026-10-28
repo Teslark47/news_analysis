@@ -10,8 +10,8 @@ persian_news_analysis/
 ├── config.json
 ├── requirements.txt
 ├── README.md
-├── data/                 # فایل دیتاست را اینجا قرار دهید
-└── outputs/              # خروجی‌ها بعد از اجرا ساخته می‌شوند
+├── data/                 # فایل دیتاست اینجا قرار میگیرد
+└── outputs/              # خروجی‌ها 
 ```
 
 ## خروجی‌ها
