@@ -1,7 +1,4 @@
 """ Ali Zandieh - Interview task
-Persian news EDA with explicit input-file selection.
-Run from the project folder: python analyze_news.py
-Expected input files in data/: main_news.csv, categories.csv, category_news.csv.
 """
 from __future__ import annotations
 
@@ -50,7 +47,6 @@ def read_csv_safely(path: Path) -> pd.DataFrame:
     for enc, sep in attempts:
         try:
             frame = pd.read_csv(path, encoding=enc, sep=sep, engine="python", on_bad_lines="warn")
-            # Reject a likely bad parse where a normal CSV was read as a single column.
             if len(frame.columns) == 1 and path.stat().st_size > 100:
                 continue
             log(f"Loaded {path.name}: {len(frame):,} rows x {len(frame.columns)} columns (encoding={enc}, sep={sep!r})")
@@ -83,7 +79,6 @@ def normalize_persian(value: object) -> str:
         return ""
     text = str(value).translate(PERSIAN_DIGITS)
     text = text.replace("ي", "ی").replace("ى", "ی").replace("ك", "ک")
-    # Keep the half-space as a separator for this simple word-count analysis.
     text = text.replace("\u200c", " ").replace("\u200f", "").replace("\u200e", "")
     text = re.sub(r"https?://\S+|www\.\S+", " ", text)
     text = re.sub(r"[^\w\s]", " ", text, flags=re.UNICODE)
@@ -135,11 +130,9 @@ def main():
     work = news.copy()
     category_method = ""
 
-    # If categories are already in the news table, use that column.
     if category_col:
         work["category_normalized"] = work[category_col].fillna("نامشخص").astype(str).str.strip().replace("", "نامشخص")
         category_method = f"category column '{category_col}' in main_news.csv"
-    # Join only on an explicit news ID column. Do NOT assume Unnamed: 0 is a news ID.
     elif categories is not None and category_links is not None and news_id_col:
         link_news_id = choose_column(category_links.columns, ["news_id"])
         link_cat_id = choose_column(category_links.columns, ["category_id", "cat_id"])
@@ -150,7 +143,6 @@ def main():
             links = category_links[[link_news_id, link_cat_id]].dropna().merge(
                 cat_map, left_on=link_cat_id, right_on=cat_id, how="left", validate="many_to_one"
             )
-            # Keep one row per news ID for this single-label summary; multi-label detail is saved separately.
             links["_category_name"] = links[cat_name].fillna("نامشخص").astype(str)
             names_by_news = links.groupby(link_news_id)["_category_name"].agg(lambda s: " | ".join(sorted(set(s))))
             work["category_normalized"] = work[news_id_col].map(names_by_news).fillna("نامشخص")
@@ -172,7 +164,6 @@ def main():
     work["analysis_text"] = (work["title_normalized"].fillna("") + " " + work["body_normalized"].fillna("")).str.strip()
     work["word_count"] = work["analysis_text"].map(lambda value: len(value.split()) if value else 0)
 
-    # Quality report for the main table and any supporting tables.
     quality = {
         "input_file": news_path.name,
         "rows": int(news.shape[0]),
